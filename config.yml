@@ -27,3 +27,11 @@ keys:
   Down: main
   Left: main
   Right: main
+  Enter: main
+  RShift: main
+layout: |2
+           Up
+          {Up}
+  Left {Left}  Right {Right}      A {x} B {y}
+          {Down}
+          Down

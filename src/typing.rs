@@ -4,6 +4,7 @@ use rand::seq::SliceRandom;
 use std::collections::{HashMap, VecDeque};
 
 use crate::configuration::Configuration;
+use crate::display::render;
 
 pub struct ChoicesState {
     conf: Configuration,
@@ -31,19 +32,17 @@ impl ChoicesState {
             choices.insert(next, (*key).clone());
         }
 
-        let me = ChoicesState {
+        ChoicesState {
             conf: conf,
             rng: rng,
             choices: choices,
             queues: queues,
-        };
- 
-        me
+        }
     }
 
     pub fn print_data(&self) {
         println!("{:?}", self.queues);
-        println!("{:?}", self.choices);
+        println!("{}", render(&self.conf.layout, &self.choices));
     }
 
     pub fn consume(&mut self, s : &String) -> Option<String> {

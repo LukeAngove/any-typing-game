@@ -10,6 +10,8 @@ use typing::ChoicesState;
 mod configuration;
 use configuration::Configuration;
 
+mod display;
+
 fn main_loop(state : &mut ChoicesState, xstate : &XdoState) -> Result<(), Box<dyn std::error::Error>> {
     let mut s = String::new();
 
