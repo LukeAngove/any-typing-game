@@ -23,7 +23,7 @@ dictionaries:
 keys:
   x: main
   y: main
-  up: main
-  down: main
-  left: main
-  right: main
+  Up: main
+  Down: main
+  Left: main
+  Right: main
