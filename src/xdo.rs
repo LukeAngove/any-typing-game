@@ -14,16 +14,12 @@ pub struct XdoState {
 impl XdoState {
     pub fn new(window_name : &String) -> XdoState {
         let toutput = search(window_name, option_vec![SearchOption::Name]);
-        println!("{:?}", toutput);
         let mut target = String::from_utf8(toutput.stdout).unwrap();
-        target.pop();
-        println!("{:?}", target);
+        target.pop(); // Remove newline
 
         let coutput = get_active_window();
-        println!("{:?}", coutput);
         let mut current = String::from_utf8(coutput.stdout).unwrap();
-        current.pop();
-        println!("{:?}", current);
+        current.pop(); // Remove newline
 
         XdoState {
             current,

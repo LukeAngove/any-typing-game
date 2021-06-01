@@ -1,13 +1,36 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
-pub fn render(fmt : &String, replacements : &HashMap<String, String>) -> String {
-    let mut res = (*fmt).clone();
+pub trait Renderable {
+    fn render(&self, fmt : &str) -> String;
+}
 
-    for (k,v) in replacements {
-        let to_rep = format!("{{{}}}", v);
-        let replacement = format!("{:12}", k);
-        res = res.replace(&to_rep, &replacement);
+impl Renderable for HashMap<String,String> {
+    fn render(&self, fmt : &str) -> String {
+        let mut res = fmt.to_string();
+
+        for (k,v) in self {
+            let to_rep = format!("{{{}}}", k);
+            let replacement = format!("{}", v);
+            res = res.replace(&to_rep, &replacement);
+        }
+        
+        res
     }
-    
-    res
+}
+
+impl Renderable for HashMap<String,VecDeque<String>> {
+    fn render(&self, fmt : &str) -> String {
+        let mut res = fmt.to_string();
+
+        for (k,v) in self {
+            let to_rep = format!("{{q:{}}}", k);
+            let (s1, s2) = v.as_slices();
+            let str1 = s1.join(" ");
+            let str2 = s2.join(" ");
+            let replacement = format!("{}", [str1, str2].join(" "));
+            res = res.replace(&to_rep, &replacement);
+        }
+        
+        res
+    }
 }

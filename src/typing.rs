@@ -4,7 +4,7 @@ use rand::seq::SliceRandom;
 use std::collections::{HashMap, VecDeque};
 
 use crate::configuration::Configuration;
-use crate::display::render;
+use crate::display::Renderable;
 
 pub struct ChoicesState {
     conf: Configuration,
@@ -28,8 +28,9 @@ impl ChoicesState {
         
         for (key,dict) in &conf.keys {
             let mut queue = queues.get_mut(dict).unwrap();
-            let next = get_from_queue(&mut queue, &choices, &conf.dictionaries[dict], &mut rng);
-            choices.insert(next, (*key).clone());
+            let new = queue.pop_back().unwrap();
+            choices.insert(key.clone(), new);
+            fill_queue(&choices, &mut queue, &conf.dictionaries[dict], &mut rng);
         }
 
         ChoicesState {
@@ -41,28 +42,34 @@ impl ChoicesState {
     }
 
     pub fn print_data(&self) {
-        println!("{:?}", self.queues);
-        println!("{}", render(&self.conf.layout, &self.choices));
+        let res = &self.choices.render(&self.conf.layout);
+        let res = &self.queues.render(&res);
+        println!("{}", res);
     }
 
-    pub fn consume(&mut self, s : &String) -> Option<String> {
-        let r = self.choices.get(s).clone();
-        match r {
-            Some(v) => {
-                let val = v.clone();
-                self.choices.remove(s);
+    pub fn consume(&mut self, s : &str) -> Option<String> {
+        let mut res : Option<String> = None;
 
-                let queue_id = &self.conf.keys[&val];
+        for (k,v) in &self.choices {
+            if s == v {
+                res = Some(k.clone());
+                break;
+            }
+        }
+ 
+        match res {
+            Some(key) => {
+                let queue_id = &self.conf.keys[&key];
                 let mut queue = self.queues.get_mut(queue_id).unwrap();
                 let dict = &self.conf.dictionaries[queue_id];
 
-                let new = get_from_queue(&mut queue, &self.choices, dict, &mut self.rng);
-                self.choices.insert(new, val.clone());
-                return Some(val);
+                let new = queue.pop_back().unwrap();
+                self.choices.insert(key.clone(), new);
+                fill_queue(&self.choices, &mut queue, dict, &mut self.rng);
+                Some(key)
             },
             None => {
-                println!("No match for: {}", *s);
-                return None;
+                None
             },
         }
     }
@@ -70,17 +77,11 @@ impl ChoicesState {
 
 }
 
-fn get_from_queue(queue : &mut VecDeque<String>, choices : &HashMap<String, String>, dictionary : &Vec<String>, rng : &mut ThreadRng) -> String {
-    let res = queue.pop_back();
-    fill_queue(choices, queue, dictionary, rng);
-    return res.unwrap(); 
-}
-
 fn fill_queue(choices : &HashMap<String, String>, this_queue : &mut VecDeque<String>, this_dict : &Vec<String>, rng : &mut ThreadRng) {
     while this_queue.len() < this_queue.capacity() { // Revisit this, as capacity may be more than requested, just not less.
         loop {
             let new = this_dict.choose(rng).unwrap();
-            if choices.get(new) == None && !this_queue.contains(new) {
+            if !(choices.values().collect::<Vec<&String>>().contains(&new) || this_queue.contains(new)) {
                 this_queue.push_front(new.clone());
                 break;
             }
