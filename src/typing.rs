@@ -63,7 +63,7 @@ impl ChoicesState {
                 let mut queue = self.queues.get_mut(queue_id).unwrap();
                 let dict = &self.conf.dictionaries[queue_id];
 
-                let new = queue.pop_back().unwrap();
+                let new = queue.pop_front().unwrap();
                 self.choices.insert(key.clone(), new);
                 fill_queue(&self.choices, &mut queue, dict, &mut self.rng);
                 Some(key)
@@ -82,7 +82,7 @@ fn fill_queue(choices : &HashMap<String, String>, this_queue : &mut VecDeque<Str
         loop {
             let new = this_dict.choose(rng).unwrap();
             if !(choices.values().collect::<Vec<&String>>().contains(&new) || this_queue.contains(new)) {
-                this_queue.push_front(new.clone());
+                this_queue.push_back(new.clone());
                 break;
             }
         }

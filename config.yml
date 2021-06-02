@@ -7,15 +7,17 @@ keys:
   Right: common
   Return: simple
   Shift_R: simple
+
 layout: |2
-  ^: {Up} {q:common}
-  <: {Left} {q:common}
-  >: {Right} {q:common}
-  V: {Down} {q:common}
-  A: {x} {q:simple}
-  B: {z} {q:simple}
-  Start: {Return} {q:simple}
-  Select: {Shift_R} {q:simple}
+  Move: {q:common}
+      ^: {Up}
+  <: {Left}
+          >: {Right}
+      V: {Down}
+
+  Action: {q:simple}
+  A: {x} Start: {Return}
+  B: {z} Select: {Shift_R}
 
 dictionaries:
   simple:
