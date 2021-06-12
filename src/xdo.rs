@@ -12,10 +12,11 @@ pub struct XdoState {
 }
 
 impl XdoState {
-    pub fn new(window_name : &String) -> XdoState {
+    pub fn new(window_name : &str) -> XdoState {
         let toutput = search(window_name, option_vec![SearchOption::Name]);
         let mut target = String::from_utf8(toutput.stdout).unwrap();
-        target.pop(); // Remove newline
+        target = target.split('\n').collect::<Vec<&str>>()[0].to_string(); // Get first instance only
+        println!("{}", target);
 
         let coutput = get_active_window();
         let mut current = String::from_utf8(coutput.stdout).unwrap();
@@ -30,6 +31,7 @@ impl XdoState {
     pub fn send_key(&self, keys : &String) {
         activate_window(&self.target, option_vec![SyncOption::Sync]);
         send_key_down(keys, option_vec![KeyboardOption::ClearModifiers]);
+        println!("Sending: {}", keys);
         sleep(0.1);
         send_key_up(keys, option_vec![KeyboardOption::ClearModifiers]);
         activate_window(&self.current, OptionVec::new());

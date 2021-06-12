@@ -4,13 +4,12 @@ use rand::seq::SliceRandom;
 use std::collections::{HashMap, VecDeque};
 
 use crate::configuration::Configuration;
-use crate::display::Renderable;
 
 pub struct ChoicesState {
-    conf: Configuration,
+    pub conf: Configuration,
     rng: ThreadRng,
-    choices: HashMap<String, String>,
-    queues: HashMap<String, VecDeque<String>>,
+    pub choices: HashMap<String, String>,
+    pub queues: HashMap<String, VecDeque<String>>,
 }
 
 impl ChoicesState {
@@ -41,12 +40,6 @@ impl ChoicesState {
         }
     }
 
-    pub fn print_data(&self) {
-        let res = &self.choices.render(&self.conf.layout);
-        let res = &self.queues.render(&res);
-        println!("{}", res);
-    }
-
     pub fn consume(&mut self, s : &str) -> Option<String> {
         let mut res : Option<String> = None;
 
@@ -73,8 +66,6 @@ impl ChoicesState {
             },
         }
     }
-    
-
 }
 
 fn fill_queue(choices : &HashMap<String, String>, this_queue : &mut VecDeque<String>, this_dict : &Vec<String>, rng : &mut ThreadRng) {

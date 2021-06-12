@@ -1,4 +1,7 @@
 use std::collections::{HashMap, VecDeque};
+use crate::ui_trait::UI;
+use crate::backend::Doer;
+use std::io::stdin;
 
 pub trait Renderable {
     fn render(&self, fmt : &str) -> String;
@@ -32,5 +35,36 @@ impl Renderable for HashMap<String,VecDeque<String>> {
         }
         
         res
+    }
+}
+
+pub struct TextDisplay {
+    doer : Doer,
+}
+
+impl TextDisplay {
+    fn print_data(&self) {
+        let res = self.doer.state.choices.render(&self.doer.state.conf.layout);
+        let res = self.doer.state.queues.render(&res);
+        println!("{}", res);
+    }
+}
+
+impl UI for TextDisplay {
+    fn new(doer : Doer) -> Self {
+        TextDisplay {
+            doer
+        }
+    }
+
+    fn main_loop(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        loop {
+            self.print_data();
+
+            let mut s = String::new();
+            stdin().read_line(&mut s)?;
+            self.doer.check_and_do(&s)?;
+        }
+        Ok(())
     }
 }
