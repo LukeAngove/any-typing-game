@@ -18,18 +18,17 @@ impl Doer {
         }
     }
     
-    pub fn check_and_do(&mut self, input : &str) -> Result<(), Box<dyn std::error::Error>> {
-        let trimmed = input.trim(); // Remove newline from read_line and any leading/trailing whitespace.
-        let words = trimmed.split(' '); // Split on whitespace to allow multiple words in a row.
-        for w in words {
-            let keys = self.state.consume(w);
+    pub fn check_and_do(&mut self, input : &str) -> Result<bool, Box<dyn std::error::Error>> {
+        let keys = self.state.consume(input);
 
-            match keys {
-                Some(k) => {self.xstate.send_key(&k);},
-                None => {println!("No matching key found for: {}", w);},
-            }
+        match keys {
+            Some(k) => {
+                self.xstate.send_key(&k);
+                Ok(true)
+            },
+            None => {
+                Ok(false)
+            },
         }
-
-        Ok(())
     }
 }

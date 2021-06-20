@@ -57,14 +57,18 @@ impl UI for TextDisplay {
         }
     }
 
-    fn main_loop(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn main_loop(&mut self) -> Result<!, Box<dyn std::error::Error>> {
         loop {
             self.print_data();
 
             let mut s = String::new();
             stdin().read_line(&mut s)?;
-            self.doer.check_and_do(&s)?;
+            let trimmed = s.trim(); // Remove newline from read_line and any leading/trailing whitespace.
+            let words = trimmed.split(' '); // Split on whitespace to allow multiple words in a row.
+
+            for w in words {
+                self.doer.check_and_do(&w)?;
+            }
         }
-        Ok(())
     }
 }

@@ -23,7 +23,7 @@ impl UI for Gui {
         }
     }
         
-    fn main_loop(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn main_loop(&mut self) -> Result<!, Box<dyn std::error::Error>> {
         let app = Application::new()
             .window(|ctx| {
                 Window::new()
@@ -40,6 +40,6 @@ impl UI for Gui {
                     .build(ctx)
             })
             .run();
-        Ok(())
+        loop {}
     }
 }

@@ -1,3 +1,5 @@
+#![feature(never_type)]
+
 use std::env;
 
 mod xdo;
@@ -17,7 +19,12 @@ use display::TextDisplay;
 mod backend;
 use backend::Doer;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+mod typing_tui;
+use typing_tui::TUI;
+
+mod event;
+
+fn main() -> Result<!, Box<dyn std::error::Error>> {
     let args : Vec<String> = env::args().collect();
     
     let app = &args[1];
@@ -26,10 +33,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let conf = Configuration::new(&conf_file)?;
     let doer = Doer::new(conf, app);
 
-    let mut ui = TextDisplay::new(doer);
+    //let mut ui = TextDisplay::new(doer);
     //let mut ui = Gui::new(doer);
+    let mut ui = TUI::new(doer);
     
-    ui.main_loop()?;
-    
-    Ok(())
+    ui.main_loop()?
 }
