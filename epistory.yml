@@ -1,0 +1,6 @@
+# We don't need any keys here; we just type.
+keys: {}
+# Empty layout to keep it small
+layout: ""
+# No dictionaries needed.
+dictionaries: {}

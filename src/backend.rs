@@ -8,9 +8,9 @@ pub struct Doer {
 }
 
 impl Doer {
-    pub fn new(conf : Configuration, target : &str) -> Self {
+    pub fn new(conf : Configuration, target : &str, window_index : usize, active : bool) -> Self {
         let state = ChoicesState::new(conf, 3);
-        let xstate = XdoState::new(target);
+        let xstate = XdoState::new(target, window_index, active);
 
         Doer {
             state,
@@ -18,17 +18,21 @@ impl Doer {
         }
     }
     
-    pub fn check_and_do(&mut self, input : &str) -> Result<bool, Box<dyn std::error::Error>> {
+    pub fn check_and_do(&mut self, input : &str) -> bool {
         let keys = self.state.consume(input);
 
         match keys {
             Some(k) => {
                 self.xstate.send_key(&k);
-                Ok(true)
+                true
             },
             None => {
-                Ok(false)
+                false
             },
         }
+    }
+
+    pub fn direct_send(&mut self, input : &str) {
+        self.xstate.send_key(input);
     }
 }

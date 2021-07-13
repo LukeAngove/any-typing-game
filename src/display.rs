@@ -67,7 +67,7 @@ impl UI for TextDisplay {
             let words = trimmed.split(' '); // Split on whitespace to allow multiple words in a row.
 
             for w in words {
-                self.doer.check_and_do(&w)?;
+                self.doer.check_and_do(&w);
             }
         }
     }

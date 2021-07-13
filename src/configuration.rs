@@ -10,7 +10,7 @@ pub struct Configuration {
 }
 
 impl Configuration {
-    pub fn new(file_name : &String) -> Result<Configuration, Box<dyn std::error::Error>> {
+    pub fn new(file_name : &str) -> Result<Configuration, Box<dyn std::error::Error>> {
         let file = File::open(file_name)?;
         let conf : Configuration = serde_yaml::from_reader(file)?;
         Ok(conf)

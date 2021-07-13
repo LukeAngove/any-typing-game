@@ -5,18 +5,18 @@ use std::{
     convert::TryInto,
 };
 use crate::event::{Event, Events};
-use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
+use termion::{event::Key, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
     layout::{Constraint, Direction, Layout},
-    style::{Color, Modifier, Style},
-    text::{Span, Spans, Text},
-    widgets::{Block, Borders, List, ListItem, Paragraph},
+    //style::{Color, Modifier, Style},
+    //text::{Span, Spans, Text},
+    //widgets::{Block, Borders, List, ListItem, Paragraph},
+    widgets::{Paragraph},
     Terminal,
 };
 use crate::ui_trait::UI;
 use crate::backend::Doer;
-use std::io::stdin;
 
 pub trait Renderable {
     fn render(&self, fmt : &str) -> String;
@@ -80,8 +80,39 @@ impl UI for TUI {
         let rows = self.print_data().matches('\n').count().try_into()?;
         let mut terminal = Terminal::new(backend)?;
         let mut string_state = "".to_string();
+        // Used to check if we are entering keys in a row,
+        // so we don't get just the start of words from Plover; the
+        // whole word will be typed before trying to match it.
+        let mut key_sequence = false;
 
         loop {
+            key_sequence = false;
+            let mut direct_send = false;
+            if let Event::Input(input) = events.next()? {
+                key_sequence = true;
+                match input {
+                    Key::Char('\n') => {
+                        direct_send = true;
+                    }
+                    Key::Char(c) => {
+                        string_state.push(c);
+                    }
+                    Key::Backspace => {
+                        string_state.pop();
+                    }
+                    Key::Esc => {
+                        panic!("Fix this later, just how we quit for now.");
+                    }
+                    _ => {}
+                }
+            }
+
+            // Remove initial spaces for working with Plover. Keep spaces after for mutliple words
+            string_state = string_state.trim_start().to_string();
+
+            // Draw after all state changes have happened.
+            // This mades the display more in line with what the viewer expects,
+            // e.g.: Show the whole matched word as the 'do' occurs.
             let ss_render = string_state.clone();
             let menu = self.print_data();
             terminal.draw(|f| {
@@ -98,28 +129,19 @@ impl UI for TUI {
                 .split(f.size());
                 f.render_widget(Paragraph::new(menu), chunks[0]);
                 f.render_widget(Paragraph::new(ss_render), chunks[1]);
-            });
-
-            if let Event::Input(input) = events.next()? {
-                match input {
-                    Key::Char('\n') => {
-                        //app.messages.push(app.input.drain(..).collect());
-                    }
-                    Key::Char(c) => {
-                        string_state.push(c);
-                    }
-                    Key::Backspace => {
-                        string_state.pop();
-                    }
-                    Key::Esc => {
-                        panic!("Fix this later, just how we quit for now.");
-                    }
-                    _ => {}
+            })?;
+ 
+            if direct_send {
+                let ss = string_state.trim_end(); // Remove trailing spaces if sending directly.
+                for s in ss.chars() {
+                    self.doer.direct_send(&s.to_string());
                 }
-            }
-
-            if (self.doer.check_and_do(&string_state)?) {
                 string_state = "".to_string();
+            } else {
+                // Don't run check and do the same cycle as a key, so we can get the whole word first.
+                if !key_sequence && self.doer.check_and_do(&string_state) {
+                    string_state = "".to_string();
+                }
             }
         }
     }

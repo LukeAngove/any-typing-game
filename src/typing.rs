@@ -2,6 +2,7 @@ use rand::thread_rng;
 use rand::rngs::ThreadRng;
 use rand::seq::SliceRandom;
 use std::collections::{HashMap, VecDeque};
+use std::cmp::min;
 
 use crate::configuration::Configuration;
 
@@ -72,7 +73,11 @@ fn fill_queue(choices : &HashMap<String, String>, this_queue : &mut VecDeque<Str
     while this_queue.len() < this_queue.capacity() { // Revisit this, as capacity may be more than requested, just not less.
         loop {
             let new = this_dict.choose(rng).unwrap();
-            if !(choices.values().collect::<Vec<&String>>().contains(&new) || this_queue.contains(new)) {
+
+            if !(
+                    choices.values().into_iter().any(|v| { let min = min(v.len(), new.len()); v[0..min] == (*new).as_str()[0..min] }) ||
+                    this_queue.iter().any(|v| { let min = min(v.len(), new.len()); v[0..min] == (*new).as_str()[0..min] })
+                ) {
                 this_queue.push_back(new.clone());
                 break;
             }
