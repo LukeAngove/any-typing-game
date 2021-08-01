@@ -1,5 +1,4 @@
 use std::{
-    error::Error,
     collections::{HashMap, VecDeque},
     io,
     convert::TryInto,
@@ -9,9 +8,6 @@ use termion::{event::Key, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
     layout::{Constraint, Direction, Layout},
-    //style::{Color, Modifier, Style},
-    //text::{Span, Spans, Text},
-    //widgets::{Block, Borders, List, ListItem, Paragraph},
     widgets::{Paragraph},
     Terminal,
 };
@@ -63,6 +59,14 @@ impl TUI {
         let res = self.doer.state.queues.render(&res);
         res
     }
+
+    fn send_key(&mut self, key : &str, held : &mut HashMap<String, u16>) {
+        let held_counter_init = 5;
+        if !held.contains_key(key) {
+            self.doer.mapped_direct_send_down(key);
+        }
+        held.insert(key.to_string(), held_counter_init);
+    }
 }
 
 impl UI for TUI {
@@ -71,7 +75,7 @@ impl UI for TUI {
             doer
         }
     }
-
+    
     fn main_loop(&mut self) -> Result<!, Box<dyn std::error::Error>> {
         let events = Events::new();
         let stdout = io::stdout().into_raw_mode()?;
@@ -83,37 +87,59 @@ impl UI for TUI {
         // Used to check if we are entering keys in a row,
         // so we don't get just the start of words from Plover; the
         // whole word will be typed before trying to match it.
-        let mut key_sequence = false;
+        let mut key_sequence;
+        let mut held = HashMap::<String, u16>::new();
 
         loop {
             key_sequence = false;
             let mut direct_send = false;
+
             if let Event::Input(input) = events.next()? {
                 key_sequence = true;
                 match input {
-                    Key::Char('\n') => {
-                        direct_send = true;
-                    }
-                    Key::Char(c) => {
-                        string_state.push(c);
-                    }
-                    Key::Backspace => {
-                        string_state.pop();
-                    }
-                    Key::Esc => {
-                        panic!("Fix this later, just how we quit for now.");
-                    }
+                    Key::Down     => self.send_key("down", &mut held),
+                    Key::Left     => self.send_key("left", &mut held),
+                    Key::Right    => self.send_key("right", &mut held),
+                    Key::Up       => self.send_key("up", &mut held),
+                    Key::Home     => self.send_key("home", &mut held),
+                    Key::End      => self.send_key("end", &mut held),
+                    Key::PageUp   => self.send_key("pageup", &mut held),
+                    Key::PageDown => self.send_key("pagedown", &mut held),
+                    Key::BackTab  => self.send_key("backtab", &mut held),
+                    Key::Delete   => self.send_key("delete", &mut held),
+                    Key::Insert   => self.send_key("insert", &mut held),
+                    Key::Backspace => { string_state.pop(); },
+                    Key::Esc => panic!("Fix this later, just how we quit for now."),
+                    Key::Char('\n') => direct_send = true,
+                    Key::Char(c) => string_state.push(c),
                     _ => {}
                 }
             }
 
+            let mut to_remove = Vec::<String>::new();
+
+            for (k, v) in held.iter_mut() {
+                *v -= 1;
+                if *v == 0 {
+                    to_remove.push(k.clone());
+                }
+            }
+
+            for i in to_remove {
+                self.doer.direct_send_up(&i);
+                held.remove(&i);
+            }
+
             // Remove initial spaces for working with Plover. Keep spaces after for mutliple words
-            string_state = string_state.trim_start().to_string();
+            // If there's just a single space, don't strip; we must be trying to send that.
+            if string_state.len() > 1 {
+                string_state = string_state.trim_start().to_string();
+            }
 
             // Draw after all state changes have happened.
             // This mades the display more in line with what the viewer expects,
             // e.g.: Show the whole matched word as the 'do' occurs.
-            let ss_render = string_state.clone();
+            let ss_render = format!("Current buffer:\n|{}|", string_state);
             let menu = self.print_data();
             terminal.draw(|f| {
                 let chunks = Layout::default()
@@ -132,9 +158,19 @@ impl UI for TUI {
             })?;
  
             if direct_send {
-                let ss = string_state.trim_end(); // Remove trailing spaces if sending directly.
+                let ss;
+                // If there's just a single space, don't strip; we must be trying to send that.
+                if string_state.len() > 1 {
+                    ss = string_state.trim_end(); // Remove trailing spaces if sending directly.
+                } else {
+                    ss = &string_state;
+                }
                 for s in ss.chars() {
-                    self.doer.direct_send(&s.to_string());
+                    if s == ' ' {
+                        self.doer.direct_send("space")
+                    } else {
+                        self.doer.direct_send(&s.to_string());
+                    }
                 }
                 string_state = "".to_string();
             } else {

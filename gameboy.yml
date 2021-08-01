@@ -8,6 +8,8 @@ keys:
   Return: simple
   Shift_R: simple
 
+direct: {}
+
 layout: |2
   Move: {q:common}
       ^: {Up}

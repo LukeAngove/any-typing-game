@@ -24,7 +24,7 @@ impl UI for Gui {
     }
         
     fn main_loop(&mut self) -> Result<!, Box<dyn std::error::Error>> {
-        let app = Application::new()
+        let _app = Application::new()
             .window(|ctx| {
                 Window::new()
                     .title("Title!")

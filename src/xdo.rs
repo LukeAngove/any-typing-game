@@ -38,6 +38,32 @@ impl XdoState {
         }
     }
 
+    pub fn send_key_down(&self, keys : &str) {
+        if self.active {
+            activate_window(&self.target, option_vec![SyncOption::Sync]);
+        }
+        send_key_down(keys, option_vec![
+            KeyboardOption::ClearModifiers,
+            KeyboardOption::Window(self.target.clone()),
+        ]);
+        if self.active {
+            activate_window(&self.current, OptionVec::new());
+        }
+    }
+
+    pub fn send_key_up(&self, keys : &str) {
+        if self.active {
+            activate_window(&self.target, option_vec![SyncOption::Sync]);
+        }
+        send_key_up(keys, option_vec![
+            KeyboardOption::ClearModifiers,
+            KeyboardOption::Window(self.target.clone()),
+        ]);
+        if self.active {
+            activate_window(&self.current, OptionVec::new());
+        }
+    }
+
     pub fn inactive_send_key(&self, keys : &str) {
         send_key(keys, option_vec![
             KeyboardOption::ClearModifiers,

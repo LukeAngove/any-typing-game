@@ -1,5 +1,12 @@
 # We don't need any keys here; we just type.
 keys: {}
+
+direct:
+  up: w
+  left: a
+  down: s
+  right: d
+
 # Empty layout to keep it small
 layout: ""
 # No dictionaries needed.

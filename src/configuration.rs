@@ -6,6 +6,7 @@ use std::collections::HashMap;
 pub struct Configuration {
     pub dictionaries: HashMap<String, Vec<String>>,
     pub keys: HashMap<String, String>,
+    pub direct: HashMap<String, String>,
     pub layout: String,
 }
 
