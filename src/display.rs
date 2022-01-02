@@ -1,45 +1,54 @@
-use std::collections::{HashMap, VecDeque};
-use crate::ui_trait::UI;
 use crate::backend::Doer;
+use crate::configuration::{DisplayableTypeable, HardDictEntry};
+use crate::ui_trait::UI;
+use std::collections::{HashMap, VecDeque};
 use std::io::stdin;
 
 pub trait Renderable {
-    fn render(&self, fmt : &str) -> String;
+    fn render(&self, fmt: &str) -> String;
 }
 
-impl Renderable for HashMap<String,String> {
-    fn render(&self, fmt : &str) -> String {
+impl Renderable for HashMap<String, HardDictEntry> {
+    fn render(&self, fmt: &str) -> String {
         let mut res = fmt.to_string();
 
-        for (k,v) in self {
+        for (k, v) in self {
             let to_rep = format!("{{{}}}", k);
-            let replacement = format!("{}", v);
+            let replacement = format!("{}", v.display());
             res = res.replace(&to_rep, &replacement);
         }
-        
+
         res
     }
 }
 
-impl Renderable for HashMap<String,VecDeque<String>> {
-    fn render(&self, fmt : &str) -> String {
+impl Renderable for HashMap<String, VecDeque<HardDictEntry>> {
+    fn render(&self, fmt: &str) -> String {
         let mut res = fmt.to_string();
 
-        for (k,v) in self {
+        for (k, v) in self {
             let to_rep = format!("{{q:{}}}", k);
             let (s1, s2) = v.as_slices();
-            let str1 = s1.join(" ");
-            let str2 = s2.join(" ");
+            let str1 = s1
+                .iter()
+                .map(|s| s.display())
+                .collect::<Vec<String>>()
+                .join(" ");
+            let str2 = s2
+                .iter()
+                .map(|s| s.display())
+                .collect::<Vec<String>>()
+                .join(" ");
             let replacement = format!("{}", [str1, str2].join(" "));
             res = res.replace(&to_rep, &replacement);
         }
-        
+
         res
     }
 }
 
 pub struct TextDisplay {
-    doer : Doer,
+    doer: Doer,
 }
 
 impl TextDisplay {
@@ -51,10 +60,8 @@ impl TextDisplay {
 }
 
 impl UI for TextDisplay {
-    fn new(doer : Doer) -> Self {
-        TextDisplay {
-            doer
-        }
+    fn new(doer: Doer) -> Self {
+        TextDisplay { doer }
     }
 
     fn main_loop(&mut self) -> Result<!, Box<dyn std::error::Error>> {

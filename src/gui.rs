@@ -1,13 +1,13 @@
-use orbtk::prelude::*;
 use crate::backend::Doer;
 use crate::ui_trait::UI;
+use orbtk::prelude::*;
 
 pub struct Gui {
-    doer : Doer,
+    doer: Doer,
 }
 
 impl UI for Gui {
-    fn new(mut doer : Doer) -> Self {
+    fn new(doer: Doer) -> Self {
         //input.handle(move |me, ev| match ev {
         //    Event::KeyDown => {
         //        println!("Stuff happened!");
@@ -18,11 +18,9 @@ impl UI for Gui {
         //    _ => false,
         //});
 
-        Gui {
-            doer,
-        }
+        Gui { doer }
     }
-        
+
     fn main_loop(&mut self) -> Result<!, Box<dyn std::error::Error>> {
         let _app = Application::new()
             .window(|ctx| {
@@ -35,7 +33,7 @@ impl UI for Gui {
                             .text("Hi!")
                             .v_align("center")
                             .h_align("center")
-                            .build(ctx)
+                            .build(ctx),
                     )
                     .build(ctx)
             })

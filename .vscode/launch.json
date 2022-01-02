@@ -1,0 +1,51 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'typing-to-input'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=typing-to-input",
+                    "--package=typing-to-input"
+                ],
+                "filter": {
+                    "name": "typing-to-input",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "-c",
+                "gameboy.yml",
+                "-i",
+                "tui",
+                "Visual Studio Code"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'typing-to-input'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=typing-to-input",
+                    "--package=typing-to-input"
+                ],
+                "filter": {
+                    "name": "typing-to-input",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
