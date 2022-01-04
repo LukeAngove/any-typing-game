@@ -1,0 +1,75 @@
+keys:
+  x: simple
+  z: simple
+  Up: common
+  Down: common
+  Left: common
+  Right: common
+  Return: simple
+  Shift_R: simple
+
+direct: {}
+
+layout: |2
+  Move: {q:common}
+      ^: {Up}
+  <: {Left}
+          >: {Right}
+      V: {Down}
+
+  Action: {q:simple}
+  A: {x} Start: {Return}
+  B: {z} Select: {Shift_R}
+
+dictionaries:
+  simple:
+    one: いち
+    two: に
+    three: さん
+    four: よん
+    five: ご
+    six: ろく
+    seven: なな
+    eight: はち
+    nine: きゅう
+    ten: じゅう
+    eleven: じゅういち
+    twelve: じゅうに
+    thirteen: じゅうさん
+    fourteen: じゅうよん
+    fifteen: じゅうご
+    sixteen: じゅうろく
+    seventeen: じゅうなな
+    eighteen: じゅうはち
+    nineteen: じゅうきゅ
+    twenty: にじゅう
+    thirty: さんじゅう
+    fourty: よんじゅう
+    fifty: ごじゅう
+    sixty: ろくじゅう
+    seventy: ななじゅう
+    eighty: はちじゅう
+    ninty: きゅうじゅう
+    one hundred: ひゃく
+  common:
+    um...: あの
+    now: いま
+    English: えいご
+    yes: はい
+    student: がくせい
+    afternoon/pm: ごご
+    morning/am: ごぜん
+    that's right: そうです
+    I see; is that so?: そうですか
+    university: だいがく
+    telephone: でんわ
+    friend: ともだち
+    name: なまえ
+    what: なに
+    half: はん
+    Japan: にほん
+    number: ばんごう
+    I: わたし
+    job/occupation: しごと
+    doctor: いしゃ
+    mother: おかあさん
