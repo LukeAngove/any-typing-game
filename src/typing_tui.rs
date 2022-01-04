@@ -1,56 +1,65 @@
+use crate::backend::Doer;
+use crate::configuration::{DisplayableTypeable, HardDictEntry};
+use crate::event::{Event, Events};
+use crate::ui_trait::UI;
 use std::{
     collections::{HashMap, VecDeque},
-    io,
     convert::TryInto,
+    io,
 };
-use crate::event::{Event, Events};
 use termion::{event::Key, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{
     backend::TermionBackend,
     layout::{Constraint, Direction, Layout},
-    widgets::{Paragraph},
+    widgets::Paragraph,
     Terminal,
 };
-use crate::ui_trait::UI;
-use crate::backend::Doer;
 
 pub trait Renderable {
-    fn render(&self, fmt : &str) -> String;
+    fn render(&self, fmt: &str) -> String;
 }
 
-impl Renderable for HashMap<String,String> {
-    fn render(&self, fmt : &str) -> String {
+impl<'a> Renderable for HashMap<String, HardDictEntry> {
+    fn render(&self, fmt: &str) -> String {
         let mut res = fmt.to_string();
 
-        for (k,v) in self {
+        for (k, v) in self {
             let to_rep = format!("{{{}}}", k);
-            let replacement = format!("{}", v);
+            let replacement = format!("{}", v.display());
             res = res.replace(&to_rep, &replacement);
         }
-        
+
         res
     }
 }
 
-impl Renderable for HashMap<String,VecDeque<String>> {
-    fn render(&self, fmt : &str) -> String {
+impl<'a> Renderable for HashMap<String, VecDeque<HardDictEntry>> {
+    fn render(&self, fmt: &str) -> String {
         let mut res = fmt.to_string();
 
-        for (k,v) in self {
+        for (k, v) in self {
             let to_rep = format!("{{q:{}}}", k);
             let (s1, s2) = v.as_slices();
-            let str1 = s1.join(" ");
-            let str2 = s2.join(" ");
+            let str1 = s1
+                .iter()
+                .map(|s| s.display())
+                .collect::<Vec<String>>()
+                .join(" ");
+            let str2 = s2
+                .iter()
+                .map(|s| s.display())
+                .collect::<Vec<String>>()
+                .join(" ");
             let replacement = format!("{}", [str1, str2].join(" "));
             res = res.replace(&to_rep, &replacement);
         }
-        
+
         res
     }
 }
 
 pub struct TUI {
-    doer : Doer,
+    doer: Doer,
 }
 
 impl TUI {
@@ -60,7 +69,7 @@ impl TUI {
         res
     }
 
-    fn send_key(&mut self, key : &str, held : &mut HashMap<String, u16>) {
+    fn send_key(&mut self, key: &str, held: &mut HashMap<String, u16>) {
         let held_counter_init = 5;
         if !held.contains_key(key) {
             self.doer.mapped_direct_send_down(key);
@@ -70,12 +79,10 @@ impl TUI {
 }
 
 impl UI for TUI {
-    fn new(doer : Doer) -> Self {
-        TUI {
-            doer
-        }
+    fn new(doer: Doer) -> Self {
+        TUI { doer }
     }
-    
+
     fn main_loop(&mut self) -> Result<!, Box<dyn std::error::Error>> {
         let events = Events::new();
         let stdout = io::stdout().into_raw_mode()?;
@@ -97,18 +104,20 @@ impl UI for TUI {
             if let Event::Input(input) = events.next()? {
                 key_sequence = true;
                 match input {
-                    Key::Down     => self.send_key("down", &mut held),
-                    Key::Left     => self.send_key("left", &mut held),
-                    Key::Right    => self.send_key("right", &mut held),
-                    Key::Up       => self.send_key("up", &mut held),
-                    Key::Home     => self.send_key("home", &mut held),
-                    Key::End      => self.send_key("end", &mut held),
-                    Key::PageUp   => self.send_key("pageup", &mut held),
+                    Key::Down => self.send_key("down", &mut held),
+                    Key::Left => self.send_key("left", &mut held),
+                    Key::Right => self.send_key("right", &mut held),
+                    Key::Up => self.send_key("up", &mut held),
+                    Key::Home => self.send_key("home", &mut held),
+                    Key::End => self.send_key("end", &mut held),
+                    Key::PageUp => self.send_key("pageup", &mut held),
                     Key::PageDown => self.send_key("pagedown", &mut held),
-                    Key::BackTab  => self.send_key("backtab", &mut held),
-                    Key::Delete   => self.send_key("delete", &mut held),
-                    Key::Insert   => self.send_key("insert", &mut held),
-                    Key::Backspace => { string_state.pop(); },
+                    Key::BackTab => self.send_key("backtab", &mut held),
+                    Key::Delete => self.send_key("delete", &mut held),
+                    Key::Insert => self.send_key("insert", &mut held),
+                    Key::Backspace => {
+                        string_state.pop();
+                    }
                     Key::Esc => panic!("Fix this later, just how we quit for now."),
                     Key::Char('\n') => direct_send = true,
                     Key::Char(c) => string_state.push(c),
@@ -143,20 +152,14 @@ impl UI for TUI {
             let menu = self.print_data();
             terminal.draw(|f| {
                 let chunks = Layout::default()
-                .direction(Direction::Vertical)
-                .margin(1)
-                .constraints(
-                    [
-                        Constraint::Length(rows),
-                        Constraint::Min(1),
-                    ]
-                    .as_ref(),
-                )
-                .split(f.size());
+                    .direction(Direction::Vertical)
+                    .margin(1)
+                    .constraints([Constraint::Length(rows), Constraint::Min(1)].as_ref())
+                    .split(f.size());
                 f.render_widget(Paragraph::new(menu), chunks[0]);
                 f.render_widget(Paragraph::new(ss_render), chunks[1]);
             })?;
- 
+
             if direct_send {
                 let ss;
                 // If there's just a single space, don't strip; we must be trying to send that.
@@ -182,4 +185,3 @@ impl UI for TUI {
         }
     }
 }
-
