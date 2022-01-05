@@ -94,11 +94,11 @@ fn fill_queue<'a>(
             let new = this_dict.choose(rng).unwrap();
 
             if !(choices.values().into_iter().any(|v| {
-                let min = min(v.matchable().len(), new.matchable().len());
-                v.matchable().as_str()[0..min] == (*new).matchable().as_str()[0..min]
+                let min = min(v.matchable().chars().count(), new.matchable().chars().count());
+                v.matchable().as_str().chars().take(min).eq((*new).matchable().as_str().chars().take(min))
             }) || this_queue.iter().any(|v| {
-                let min = min(v.matchable().len(), new.matchable().len());
-                v.matchable().as_str()[0..min] == (*new).matchable().as_str()[0..min]
+                let min = min(v.matchable().chars().count(), new.matchable().chars().count());
+                v.matchable().as_str().chars().take(min).eq((*new).matchable().as_str().chars().take(min))
             })) {
                 this_queue.push_back(new.hard_copy());
                 break;
